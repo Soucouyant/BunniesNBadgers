@@ -87,19 +87,16 @@ while True:
     screen.blit(plrRot, plrPos1)
 
     for bullet in arrows:
-        index = 0
         velx = math.cos(bullet[0]) * 10
         vely = math.sin(bullet[0]) * 10
         bullet[1] += velx
         bullet[2] += vely
         if bullet[1] <- 64 or bullet[1] > 640 or bullet[2] <- 64 or bullet[2] > 480:
-            arrows.pop(index)
-        index += 1
+            arrows.remove(bullet)
         for projectile in arrows:
             arrow1 = pygame.transform.rotate(arrowImg, 360-projectile[0] * 57.29)
             screen.blit(arrow1, (projectile[1] ,projectile[2]))
-    
-    # Issue: Only one badger spawns
+            
     if badTimer == 0:
         badGuys.append(
             [640, random.randint(50,430)]
@@ -109,31 +106,31 @@ while True:
             badTimer1 = 35
         else:
             badTimer1+=5
-    index = 0
     for badGuy in badGuys:
         if badGuy[0] <- 64:
-            badGuys.pop(index)
+            badGuys.remove(badGuy)
         badGuy[0] -= 7
         badrect = pygame.Rect(badGuyImg.get_rect())
         badrect.top = badGuy[1]
         badrect.left = badGuy[0]
         if badrect.left < 64:
             healthPoints -= random.randint(5,20)
-            badGuys.pop(index)
-        index += 1
+            badGuys.remove(badGuy)
+        for bullet in arrows:
+            bullrect = pygame.Rect(arrowImg.get_rect())
+            bullrect.left = bullet[1]
+            bullrect.top = bullet[2]
+            if badrect.colliderect(bullrect):
+                print("collide")
+                acc[0] += 1
+                badGuys.remove(badGuy)
+                arrows.remove(bullet)
     for badGuy in badGuys:
         screen.blit(badGuyImg, badGuy)
         
     # Killing enemy crashes game
-    index1 = 0
-    for bullet in arrows:
-        bullrect = pygame.Rect(arrowImg.get_rect())
-        bullrect.left = bullet[1]
-        bullrect.top = bullet[2]
-        if badrect.colliderect(bullrect):
-            acc[0] += 1
-            badGuys.pop(index)
-            arrows.pop(index1)
-        index1 += 1
+    # Index Issues
+    
+        
     pygame.display.update()
     clock.tick(60)
