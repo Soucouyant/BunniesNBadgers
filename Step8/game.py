@@ -85,7 +85,10 @@ while True:
             bullrect.top = bullet[2]
             if badrect.colliderect(bullrect):
                 acc[0] += 1
-                badGuys.remove(badGuy)
+                if badGuy:
+                    badGuys.remove(badGuy)
+                else:
+                    pass
                 arrows.remove(bullet)
     for badGuy in badGuys:
         screen.blit(badGuyImg, badGuy)
