@@ -1,3 +1,5 @@
+from os import stat
+from sre_parse import State
 import pygame
 from pygame.locals import * 
 import math
@@ -22,9 +24,53 @@ gameover = pygame.image.load("../BunniesNBadgers/resources/images/gameover.png")
 youwin = pygame.image.load("../BunniesNBadgers/resources/images/youwin.png")
 badGuyImg = badGuysImg1
 
+def gameStateDetection(acc, accuracy, x):
+    # Game Over Screen not big enough
+    # Remove first conditional
+    if x == 1 or x == 0:
+        if x == 1:
+            global state 
+            if not acc[1]:
+                pygame.font.init()
+                font = pygame.font.Font(None, 24)
+                text = font.render("You haven't fired a shot! ", True, (255,0,0))
+                textRect = text.get_rect()
+                textRect.centerx = screen.get_rect().centerx
+                textRect.centery = screen.get_rect().centery + 24
+                # screen.blit(gameover, (0,0))
+            else:
+                pygame.font.init()
+                font = pygame.font.Font(None, 24)
+                text = font.render("Accuracy: " +str("%.2f" % accuracy) + "%", True, (255,0,0))
+                textRect = text.get_rect()
+                textRect.centerx = screen.get_rect().centerx
+                textRect.centery = screen.get_rect().centery + 24
+            screen.blit(gameover, (0,0))
+            state = False
+        elif x == 0:
+            if not acc[1]:
+                pygame.font.init()
+                font = pygame.font.Font(None, 24)
+                text = font.render("You haven't fired a shot! ", True, (0,255,0))
+                textRect = text.get_rect()
+                textRect.centerx = screen.get_rect().centerx
+                textRect.centery = screen.get_rect().centery + 24
+            else:
+                pygame.font.init()
+                font = pygame.font.Font(None, 24)
+                text = font.render("Accuracy: " +str("%.2f" % accuracy) + "%", True, (0,255,0))
+                textRect = text.get_rect()
+                textRect.centerx = screen.get_rect().centerx
+                textRect.centery = screen.get_rect().centery + 24
+            screen.blit(youwin, (0,0)) 
+            state = False
+        screen.blit(text, textRect)
+    
 # Main Game Loop
 def gameLoop():
     # Main Vars
+    global state
+    state = True
     keys = [False, False, False, False]
     plrPos = [100,100]
     acc = [0,0]
@@ -34,6 +80,7 @@ def gameLoop():
     badGuys = [
         [640,100]
     ]
+    # HP: Debug 
     healthPoints = 194
     startTime = pygame.time.get_ticks()
     
@@ -101,7 +148,10 @@ def gameLoop():
                 
                 # Collision Detection
                 if badrect.colliderect(bullrect):
-                    acc[0] += 1
+                    if state == False:
+                        pass
+                    else:
+                        acc[0] += 1
                     
                     # Empty Array Error Solve
                     if badGuy:
@@ -115,24 +165,30 @@ def gameLoop():
             screen.blit(badGuyImg, badGuy)
         
         # Clock 
-        font = pygame.font.Font(None, 24)
-        survivedtext = font.render(str("%.0f" % (pygame.time.get_ticks() / 120000))+":"+str( "%.0f" % (pygame.time.get_ticks() /1000 % 60)).zfill(2), True, (0,0,0))
-        textRect = survivedtext.get_rect()
-        textRect.topright=[580,10]
-        screen.blit(survivedtext, textRect)
-        screen.blit(healthBar, (5,5))
+        if state != False:      
+            font = pygame.font.Font(None, 24)
+            survivedtext = font.render(str("%.0f" % (pygame.time.get_ticks() / 120000))+":"+str( "%.0f" % (pygame.time.get_ticks() /1000 % 60)).zfill(2), True, (0,0,0))
+            textRect = survivedtext.get_rect()
+            textRect.topright=[580,10]
+            screen.blit(survivedtext, textRect)
+            screen.blit(healthBar, (5,5))
         
         # Health Bar
         for health1 in range(healthPoints):
-            screen.blit(health, (health1+8,8))
-
+            if state != False:
+                screen.blit(health, (health1+8,8))
+            else:
+                pass
         # Event Loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                acc[1] += 1
+                if state == False:
+                    pass
+                else:
+                    acc[1] += 1
                 arrows.append([math.atan2(mousePos[1]-(plrPos1[1]+32),mousePos[0]-(plrPos1[0]+26)), plrPos1[0]+32, plrPos1[1]+32])
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
@@ -160,42 +216,22 @@ def gameLoop():
                 plrPos[0] -=5
             elif keys[3]:
                 plrPos[0] += 5
-
-            timeAtCheck = pygame.time.get_ticks()
-            if  timeAtCheck - startTime >= 90000:
-                running = 0
-                exitcode = 1
-            if healthPoints <= 0:
-                running = 0
-                exitcode = 0
-            if acc[1] != 0:
-                accuracy = acc[0]*1.0/acc[1]*100
-            else:
+            
+        timeNow = pygame.time.get_ticks()
+        if  timeNow - startTime >= 90000:
+            if acc[0] <= 0:
                 accuracy = 0
-        
-        pygame.font.init()
-        font = pygame.font.Font(None, 24)
-        
-        # Fix This
-        if exitcode == 0:
-            text = font.render("Accuracy: " +str("%.2f" % accuracy) + "%", True, (255,0,0))
-            textRect = text.get_rect()
-            textRect.centerx = screen.get_rect().centerx
-            textRect.centery = screen.get_rect().centery + 24
-            screen.blit(gameover, (0,0))
-        else:
-            text = font.render("Accuracy: " + str("%.2f" % accuracy) + "%", True, (0,255,0))
-            textRect = text.get_rect()
-            textRect.centerx = screen.get_rect().centerx
-            textRect.centery = screen.get_rect().centery+24
-            screen.blit(youwin, (0,0))   
-        screen.blit(text, textRect)
-    # while 1:
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             pygame.quit()
-    #             exit()
-    #     pygame.display.flip()
+            else:
+                accuracy = acc[0]*1.0/acc[1]*100
+            gameStateDetection(acc, accuracy, 0)
+            healthPoints = 194
+        if healthPoints <= 0:
+            if acc[0] <= 0:
+                accuracy = 0
+            else:
+                accuracy = acc[0]*1.0/acc[1]*100
+            gameStateDetection(acc, accuracy, 1)
+            
         pygame.display.update()
         clock.tick(60)
 
