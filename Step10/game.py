@@ -6,6 +6,7 @@ from sys import exit
 
 # Init
 pygame.init()
+pygame.mixer.init()
 width, height = 600,500
 screen = pygame.display.set_mode((width,height))
 clock = pygame.time.Clock()
@@ -21,6 +22,21 @@ health = pygame.image.load("../BunniesNBadgers/resources/images/health.png")
 gameover = pygame.image.load("../BunniesNBadgers/resources/images/gameover.png")
 youwin = pygame.image.load("../BunniesNBadgers/resources/images/youwin.png")
 badGuyImg = badGuysImg1
+
+# Audio Load
+hit = pygame.mixer.Sound("../BunniesNBadgers/resources/audio/explode.wav")
+enemy = pygame.mixer.Sound("../BunniesNBadgers/resources/audio/enemy.wav")
+shoot = pygame.mixer.Sound("../BunniesNBadgers/resources/audio/shoot.wav")
+hit.set_volume(0.05)
+enemy.set_volume(0.05)
+shoot.set_volume(0.05)
+pygame.mixer.music.load("../BunniesNBadgers/resources/audio/moonlight.wav")
+pygame.mixer.music.play(-1,0.0)
+pygame.mixer.music.set_volume(0.25)
+
+
+
+
 
 def gameStateDetection(acc, accuracy, x):
     # Game Over Screen not big enough
@@ -137,18 +153,22 @@ def gameLoop():
             badrect.top = badGuy[1]
             badrect.left = badGuy[0]
             if badrect.left < 64:
+                if state == False:
+                    pass
+                else:
+                    hit.play()
                 healthPoints -= random.randint(5,20)
                 badGuys.remove(badGuy)
             for bullet in arrows:
                 bullrect = pygame.Rect(arrowImg.get_rect())
                 bullrect.left = bullet[1]
                 bullrect.top = bullet[2]
-                
                 # Collision Detection
                 if badrect.colliderect(bullrect):
                     if state == False:
                         pass
                     else:
+                        enemy.play()
                         acc[0] += 1
                     
                     # Empty Array Error Solve
@@ -183,6 +203,7 @@ def gameLoop():
                 pygame.quit()
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                shoot.play()
                 if state == False:
                     pass
                 else:
